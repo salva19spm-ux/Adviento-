@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c1f14">
+<title>Calendario de Adviento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#16402a;--bg2:#0a1c11;--ac:#e2b84a;--tx:#f6f1e3;--card:rgba(255,255,255,.07);--door:#b3262d}
+[data-theme=elegante]{--bg1:#1c1c1c;--bg2:#050505;--ac:#d9b45b;--tx:#f7f3ea;--door:#111}
+[data-theme=romantica]{--bg1:#6b1233;--bg2:#2a0614;--ac:#ff9bb5;--tx:#fff0f3;--door:#c2185b}
+[data-theme=invierno]{--bg1:#27547f;--bg2:#0c2038;--ac:#cfe9ff;--tx:#f2f9ff;--door:#3f7cb5}
+[data-theme=nocturna]{--bg1:#101b4a;--bg2:#050818;--ac:#ffe27a;--tx:#eef0ff;--door:#2b3a8c}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--tx);background:radial-gradient(120% 90% at 50% 0,var(--bg1),var(--bg2)) fixed;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+#snow{position:fixed;inset:0;pointer-events:none;z-index:0}
+#app{position:relative;z-index:1;max-width:620px;margin:0 auto;padding:18px 16px 60px}
+h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;margin:.2em 0}
+h1{font-size:2.5rem;text-align:center;line-height:1.05}
+h2{font-size:1.6rem;color:var(--ac)}
+.sub{text-align:center;opacity:.85;white-space:pre-wrap}
+.card{background:var(--card);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:16px;margin:16px 0;backdrop-filter:blur(6px)}
+label{display:block;margin:10px 0;font-size:.9rem;opacity:.95}
+input,textarea,select{width:100%;margin-top:4px;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.35);color:var(--tx);font:inherit}
+input[type=color]{height:44px;padding:3px}
+button{font:inherit;cursor:pointer}
+.btn{display:inline-block;padding:12px 18px;border-radius:999px;border:0;background:var(--ac);color:#1a1a1a;font-weight:700;text-decoration:none;margin:4px 4px 4px 0}
+.btn.s{background:transparent;color:var(--tx);border:1px solid var(--ac)}
+.st{position:sticky;top:0;text-align:center;font-size:.8rem;opacity:.8;margin:0;padding:4px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.door{position:relative;aspect-ratio:3/4;border-radius:10px 10px 4px 4px;border:2px solid var(--ac);background:linear-gradient(160deg,var(--c,var(--door)),#00000066);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform .25s}
+.door b{font-family:'Cormorant Garamond',serif;font-size:1.8rem}
+.door span{font-size:1.1rem}
+.door.lock{filter:saturate(.5) brightness(.8)}
+.door.lock::after{content:'🔒';position:absolute;top:3px;right:4px;font-size:.7rem}
+.door.open{box-shadow:0 0 14px var(--ac);transform:perspective(300px) rotateY(-14deg);transform-origin:left}
+.door:active{transform:scale(.95)}
+.modal{position:fixed;inset:0;z-index:5;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;animation:f .3s}
+.box{position:relative;background:linear-gradient(var(--bg1),var(--bg2));border:2px solid var(--ac);border-radius:18px;max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:22px 18px;animation:u .45s cubic-bezier(.2,.9,.3,1.2)}
+.x{position:absolute;top:8px;right:10px;background:none;border:0;color:var(--tx);font-size:1.4rem}
+.letter{white-space:pre-wrap;line-height:1.6;font-size:1.05rem}
+.ph{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;margin:12px 0}
+.ph img{height:260px;border-radius:12px;scroll-snap-align:center;flex:none;max-width:90%;object-fit:cover}
+.vale{border:2px dashed var(--ac);border-radius:14px;padding:14px;margin:12px 0;text-align:center}
+.vale h3{margin:0;font-size:1.7rem}
+.pl{display:flex;flex-wrap:wrap;gap:8px}
+.pl div{position:relative}.pl img{width:76px;height:76px;object-fit:cover;border-radius:8px}
+.pl button{position:absolute;top:-6px;right:-6px;border-radius:50%;border:0;width:22px;height:22px;background:#c00;color:#fff}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ac);color:#111;padding:12px 18px;border-radius:14px;z-index:9;max-width:90%;text-align:center;animation:u .3s}
+audio,video{width:100%;margin:10px 0;border-radius:12px}
+iframe{width:100%;border:0;border-radius:12px;margin:10px 0}
+.pl .chip{display:flex;width:76px;height:76px;align-items:center;justify-content:center;background:rgba(0,0,0,.35);border-radius:8px}
+.box.final{animation:burst 1.2s ease-out;box-shadow:0 0 44px var(--ac)}
+@keyframes burst{from{opacity:0;transform:scale(.3) rotate(-6deg)}60%{transform:scale(1.06)}}
+.sig{text-align:right;font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--ac);margin:14px 0 4px}
+.rc{border-top:1px solid rgba(255,255,255,.18);padding:10px 0;font-size:.9rem;line-height:1.45}
+.rp{display:flex;gap:6px;margin-top:6px}.rp img{width:64px;height:64px;object-fit:cover;border-radius:8px}
+.heart{position:fixed;bottom:-30px;z-index:6;pointer-events:none;animation:rise 4.5s linear forwards}
+@keyframes rise{to{transform:translateY(-115vh) rotate(20deg);opacity:0}}
+body.paper{background:#fff;color:#222;font-family:Georgia,'Cormorant Garamond',serif}
+.paper #snow{display:none}.paper #app{max-width:780px}
+.paper h1,.paper h2,.paper h3{color:#7a1f2b}
+.paper .bar{text-align:center;padding:10px 0 20px;font-family:Nunito,system-ui,sans-serif}
+.paper .bar .btn.s{color:#222}
+.paper .cv{min-height:88vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:3px double #b8902a;padding:36px 24px;break-after:page}
+.paper .cv h1{font-size:3.2rem}.paper .who{font-size:1.4rem;margin:6px 0}.paper .ded{white-space:pre-wrap;font-style:italic;max-width:520px;line-height:1.6}
+.paper .dd{padding:14px 0;border-top:1px solid #d8d0bc}.paper .dd h2{break-after:avoid;font-size:1.5rem;text-transform:capitalize}
+.paper .pg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.paper .pg img{width:100%;border-radius:6px;break-inside:avoid}
+.paper .vale{border-color:#b8902a;break-inside:avoid}.paper .ln{font-size:.85rem;word-break:break-all;margin:4px 0}.paper .ln a{color:#1d4f91}
+.paper .end{text-align:center;font-style:italic;padding:40px 0 10px;break-before:avoid}
+@media print{.np{display:none!important}@page{size:A4;margin:14mm}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.paper #app{max-width:none;padding:0}}
+@keyframes f{from{opacity:0}}@keyframes u{from{opacity:0;transform:translateY(24px) scale(.96)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="snow"></canvas>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+const $ = s => document.querySelector(s), app = $('#app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const THEMES = [['clasica','Navidad clásica'],['elegante','Navidad elegante'],['romantica','Navidad romántica'],['invierno','Invierno mágico'],['nocturna','Navidad nocturna'],['personalizado','Personalizado']];
+const fmt = (iso, tz) => new Date(iso).toLocaleString('es-ES', {dateStyle:'full', timeStyle:'short', timeZone: tz});
+const toast = t => { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 3200); };
+const sb = (typeof SB_URL==='undefined'||SB_URL.startsWith('PEGA')) ? null : supabase.createClient(SB_URL, SB_KEY);
+let TOK, SLUG, CAL, DOORS, CUR, T, pend, DECO = '';
+
+// Nieve
+(function(){const c=$('#snow'),x=c.getContext('2d');let w,h;const f=[];function rs(){w=c.width=innerWidth;h=c.height=innerHeight}rs();addEventListener('resize',rs);
+for(let i=0;i<70;i++)f.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:1+Math.random()*2.5,v:.4+Math.random()});
+(function t(){x.clearRect(0,0,w,h);x.fillStyle='rgba(255,255,255,.8)';for(const p of f){p.y+=p.v;p.x+=Math.sin(p.y/40)*.4;if(p.y>h){p.y=-5;p.x=Math.random()*w}if(DECO){x.font=(p.r*6+6)+'px serif';x.fillText(DECO,p.x,p.y)}else{x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fill()}}requestAnimationFrame(t)})()})();
+
+const HEX = /^#[0-9a-f]{6}$/i;
+function applyTheme(cal){
+  const b = document.body; b.dataset.theme = cal.theme || 'clasica';
+  ['--bg1','--bg2','--ac','--tx'].forEach(v => b.style.removeProperty(v)); DECO = '';
+  if(cal.theme != 'personalizado') return;
+  const u = cal.custom || {}, g = (k, d) => HEX.test(u[k]) ? u[k] : d, c1 = g('c1', '#2a2a6a');
+  const lum = parseInt(c1.slice(1,3),16)*.3 + parseInt(c1.slice(3,5),16)*.59 + parseInt(c1.slice(5,7),16)*.11;
+  b.style.setProperty('--bg1', c1); b.style.setProperty('--bg2', g('c2', '#0a0a20')); b.style.setProperty('--ac', g('ac', '#ffcf5a'));
+  b.style.setProperty('--tx', lum > 150 ? '#1a1a1a' : '#f6f1e3');
+  DECO = typeof u.deco == 'string' ? [...u.deco].slice(0,2).join('') : '❄';
+}
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const c = document.createElement('canvas'); c.style.cssText = 'position:fixed;inset:0;z-index:20;pointer-events:none'; c.width = innerWidth; c.height = innerHeight; document.body.append(c);
+  const x = c.getContext('2d'), cols = ['#e2b84a','#ff6b81','#7bed9f','#70a1ff','#ffffff'];
+  const P = Array.from({length:160}, () => ({x:Math.random()*c.width, y:-20-Math.random()*c.height*.5, vx:(Math.random()-.5)*3, vy:2+Math.random()*4, s:5+Math.random()*6, r:Math.random()*6, c:cols[Math.random()*5|0]}));
+  let n = 0;
+  (function f(){ x.clearRect(0,0,c.width,c.height); P.forEach(p => { p.x += p.vx; p.y += p.vy; p.r += .1; x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle = p.c; x.fillRect(-p.s/2,-p.s/3,p.s,p.s*.6); x.restore(); }); if(++n < 300) requestAnimationFrame(f); else c.remove(); })();
+}
+function hearts(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  for(let i=0;i<16;i++){ const h = document.createElement('span'); h.className = 'heart'; h.textContent = ['💛','❤️','✨','⭐'][i%4];
+    h.style.left = Math.random()*95 + '%'; h.style.fontSize = (16 + Math.random()*18) + 'px'; h.style.animationDelay = Math.random()*2.5 + 's';
+    document.body.append(h); setTimeout(() => h.remove(), 8000); }
+}
+function showQR(u){
+  if(typeof qrcode == 'undefined') return toast('No se pudo cargar el generador de QR. Comprueba tu conexión.');
+  const q = qrcode(0, 'M'); q.addData(u); q.make();
+  const n = q.getModuleCount(), z = 10, m = 4, c = document.createElement('canvas'); c.width = c.height = (n + 2*m) * z;
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0,0,c.width,c.height); x.fillStyle = '#000';
+  for(let r=0;r<n;r++) for(let k=0;k<n;k++) if(q.isDark(r,k)) x.fillRect((k+m)*z,(r+m)*z,z,z);
+  c.style.cssText = 'width:220px;max-width:100%;border-radius:12px;display:block;margin:12px 0';
+  const a = document.createElement('a'); a.className = 'btn'; a.textContent = 'Descargar QR'; a.download = 'calendario-adviento-qr.png'; a.href = c.toDataURL('image/png');
+  $('#qr').replaceChildren(c, a);
+}
+function finalExtra(d, all, cal){
+  const rc = all.filter(x => x.day != 24 && x.content && (x.content.letter || x.content.vt || (x.content.photos||[]).length)).map(x => {
+    const k = x.content, t = k.letter || '';
+    return `<div class="rc"><b>${x.day} ${esc(x.icon)}</b> ${k.vt ? `<i>${esc(k.vt)}</i> · ` : ''}${esc(t.slice(0,140))}${t.length > 140 ? '…' : ''}<div class="rp">${(k.photos||[]).slice(0,3).map(u => `<img loading="lazy" src="${esc(u)}">`).join('')}</div></div>`; }).join('');
+  return `${cal.from_name ? `<p class="sig">Con cariño, ${esc(cal.from_name)}</p>` : ''}${rc ? `<h3>Todo lo que hemos vivido estos días</h3>${rc}` : ''}`;
+}
+/* ---------- RECUERDO EN PDF (vista de impresión) ---------- */
+const dlong = (iso, tz) => new Date(iso).toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone: tz});
+function memoryPage(cal, doors, back){
+  document.body.className = 'paper'; applyTheme({}); app.onclick = app.oninput = app.onchange = null;
+  const url = u => /^https?:\/\//.test(u) ? u : '';
+  const ln = (l, u) => url(u) ? `<p class="ln">${l}: <a href="${esc(u)}">${esc(u)}</a></p>` : '';
+  const ds = doors.filter(d => d.content && Object.keys(d.content).length);
+  const range = doors.length ? `${dlong(doors[0].unlock_at, cal.tz)} – ${dlong(doors[doors.length-1].unlock_at, cal.tz)}` : '';
+  app.innerHTML = `<div class="bar np"><a class="btn s" href="${back}">← Volver</a> <button class="btn" id="pb">Guardar como PDF</button>
+    <p>Se abrirá el cuadro de impresión del móvil: elige «Guardar como PDF». Incluye las puertas ya abiertas${ds.length ? ' (' + ds.length + ')' : ''}.</p></div>
+  <section class="cv"><h1>${esc(cal.title)}</h1>
+    <p class="who">${cal.to_name ? 'Para ' + esc(cal.to_name) : ''}${cal.from_name ? ' · de ' + esc(cal.from_name) : ''}</p>
+    ${cal.dedication ? `<p class="ded">${esc(cal.dedication)}</p>` : ''}<p>${esc(range)}</p></section>
+  ${ds.map(d => { const c = d.content;
+    return `<article class="dd"><h2>${d.day}. ${esc(dlong(d.unlock_at, cal.tz))} ${esc(d.icon)}</h2>
+    ${c.letter ? `<div class="letter">${esc(c.letter)}</div>` : ''}
+    ${(c.photos||[]).length ? `<div class="pg">${c.photos.map(u => `<img src="${esc(u)}">`).join('')}</div>` : ''}
+    ${c.vt ? `<div class="vale"><h3>${esc(c.vt)}</h3><p>${esc(c.vd||'')}</p></div>` : ''}
+    ${c.rq ? `<div class="vale"><p>${esc(c.rq)}</p>${c.ra ? `<p><b>Respuesta:</b> ${esc(c.ra)}</p>` : ''}</div>` : ''}
+    ${(c.lk||'').split('\n').map(l => ln('Música', l.trim())).join('')}
+    ${(c.audios||[]).map((u,i) => ln('Audio ' + (i+1), u)).join('')}${(c.videos||[]).map((u,i) => ln('Vídeo ' + (i+1), u)).join('')}</article>`; }).join('')}
+  <section class="end"><p>Hecho con cariño${cal.from_name ? ' por ' + esc(cal.from_name) : ''}${cal.to_name ? ' para ' + esc(cal.to_name) : ''}.</p></section>`;
+  $('#pb').onclick = async () => { const b = $('#pb'); b.textContent = 'Preparando fotos…'; await Promise.all([...document.images].map(i => i.decode().catch(() => {}))); b.textContent = 'Guardar como PDF'; print(); };
+}
+async function recuerdo(slug){
+  const {data} = await sb.rpc('get_public', {sl: slug});
+  if(!data){ app.innerHTML = '<div class="card"><h2>Calendario no encontrado</h2></div>'; return; }
+  memoryPage(data.cal, data.doors, '#/c/' + slug);
+}
+async function recuerdoAdmin(tok){
+  const {data} = await sb.rpc('get_admin', {tok});
+  if(!data){ app.innerHTML = '<div class="card"><h2>Enlace de administración no válido</h2></div>'; return; }
+  memoryPage(data.cal, data.doors, '#/admin/' + tok);
+}
+function route(){
+  const h = location.hash.slice(1); let m;
+  document.body.className = ''; app.onclick = app.oninput = app.onchange = null; applyTheme({});
+  if(!sb){ app.innerHTML = '<div class="card"><h2>Falta configurar</h2><p>Abre <b>config.js</b> y pega tu Project URL y tu anon key de Supabase (ver GUIA.md).</p></div>'; return; }
+  if(m = h.match(/^\/admin\/(\w+)/)) admin(m[1]);
+  else if(m = h.match(/^\/c\/(\w+)/)) view(m[1]);
+  else if(m = h.match(/^\/rp\/(\w+)/)) recuerdoAdmin(m[1]);
+  else if(m = h.match(/^\/r\/(\w+)/)) recuerdo(m[1]);
+  else home();
+}
+addEventListener('hashchange', route);
+
+/* ---------- INICIO / CREAR ---------- */
+function home(){
+  const saved = localStorage.getItem('adv_tok');
+  app.innerHTML = `<h1>Calendario de Adviento</h1><p class="sub">24 puertas, una sorpresa cada día. Gratis, sin registro.</p>
+  ${saved ? `<div class="card"><a class="btn" href="#/admin/${saved}">Continuar mi calendario</a></div>` : ''}
+  <form class="card" id="nf"><h2>Crear uno nuevo</h2>
+  <label>Para quién es<input name="to_name" required maxlength="80"></label>
+  <label>De parte de<input name="from_name" required maxlength="80"></label>
+  <label>Tema<select name="theme">${THEMES.map(([v,n])=>`<option value="${v}">${n}</option>`).join('')}</select></label>
+  <label>Primer día<input type="date" name="start_date" value="2026-12-01"></label>
+  <label>Hora de apertura (0–23)<input type="number" name="open_hour" min="0" max="23" value="8"></label>
+  <button class="btn" type="submit">Crear calendario</button></form>`;
+  const sel = $('select[name=theme]'); sel.onchange = () => applyTheme({theme: sel.value});
+  $('#nf').onsubmit = async e => {
+    e.preventDefault();
+    const p = Object.fromEntries(new FormData(e.target)); p.open_hour = +p.open_hour;
+    p.title = 'Calendario de Adviento para ' + p.to_name; p.tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid';
+    const {data, error} = await sb.rpc('create_calendar', {p});
+    if(error || !data) return toast('No se pudo crear: ' + (error?.message || 'error'));
+    localStorage.setItem('adv_tok', data.token); location.hash = '/admin/' + data.token;
+  };
+}
+
+/* ---------- CREADOR ---------- */
+async function admin(tok){
+  TOK = tok;
+  const {data} = await sb.rpc('get_admin', {tok});
+  if(!data){ app.innerHTML = '<div class="card"><h2>Enlace de administración no válido</h2><a class="btn" href="#/">Inicio</a></div>'; return; }
+  localStorage.setItem('adv_tok', tok);
+  SLUG = data.slug; CAL = data.cal; DOORS = data.doors; CUR = null; pend = null;
+  applyTheme(CAL);
+  const url = () => location.origin + location.pathname + '#/c/' + SLUG;
+  const adminUrl = location.origin + location.pathname + '#/admin/' + tok;
+  const msg = `🎄 ${CAL.from_name} te ha preparado un calendario de Adviento. Se abre una puerta cada día:`;
+  app.innerHTML = `<p id="st" class="st">Guardado ✓</p><h1>Tu calendario</h1>
+  <section class="card"><h2>Ajustes</h2>
+  ${[['title','Título'],['to_name','Para'],['from_name','De']].map(([k,l])=>`<label>${l}<input data-k="${k}" value="${esc(CAL[k])}" maxlength="120"></label>`).join('')}
+  <label>Dedicatoria inicial<textarea data-k="dedication" rows="3" maxlength="2000">${esc(CAL.dedication)}</textarea></label>
+  <label>Tema<select data-k="theme">${THEMES.map(([v,n])=>`<option value="${v}" ${v==CAL.theme?'selected':''}>${n}</option>`).join('')}</select></label>
+  <div id="cuw" ${CAL.theme=='personalizado'?'':'hidden'}>${[['c1','Color de fondo 1'],['c2','Color de fondo 2'],['ac','Color de detalles']].map(([k,l])=>`<label>${l}<input type="color" data-cu="${k}" value="${HEX.test((CAL.custom||{})[k])?CAL.custom[k]:{c1:'#2a2a6a',c2:'#0a0a20',ac:'#ffcf5a'}[k]}"></label>`).join('')}<label>Decoración que cae (un emoji)<input data-cu="deco" maxlength="4" value="${esc(typeof (CAL.custom||{}).deco=='string'?CAL.custom.deco:'❄')}"></label></div>
+  <label>Primer día<input type="date" data-k="start_date" value="${CAL.start_date}"></label>
+  <label>Hora de apertura (0–23)<input type="number" min="0" max="23" data-k="open_hour" value="${CAL.open_hour}"></label>
+  <label>Zona horaria<input data-k="tz" value="${esc(CAL.tz)}"></label></section>
+  <section class="card"><h2>Puertas</h2><p class="sub" style="text-align:left">Toca una puerta para prepararla. Se guarda sola. Las puertas ya abiertas no se pueden cambiar.</p>
+  <div class="grid" id="grid"></div><div id="ed"></div></section>
+  <section class="card"><h2>Compartir</h2>
+  <label>Enlace para ella/él<input readonly id="pu" value="${esc(url())}"></label>
+  <button class="btn" data-a="copy" data-v="${esc(url())}">Copiar</button>
+  <a class="btn s" target="_blank" href="https://wa.me/?text=${encodeURIComponent(msg+' '+url())}">WhatsApp</a>
+  <a class="btn s" target="_blank" href="https://t.me/share/url?url=${encodeURIComponent(url())}&text=${encodeURIComponent(msg)}">Telegram</a>
+  <button class="btn s" data-a="qr" data-v="${esc(url())}">Código QR</button><a class="btn s" href="#/rp/${tok}">Recuerdo en PDF</a><div id="qr"></div>
+  <h3 style="margin-top:18px">Tu enlace privado de edición</h3><p class="sub" style="text-align:left">Solo para ti. Quien lo tenga puede editar. No lo envíes a quien recibe el regalo.</p>
+  <button class="btn s" data-a="copy" data-v="${esc(adminUrl)}">Copiar enlace de edición</button></section>`;
+  drawGrid();
+  app.oninput = e => {
+    const k = e.target.dataset.k, ek = e.target.dataset.e, cu = e.target.dataset.cu;
+    if(cu){ (CAL.custom ||= {})[cu] = e.target.value; applyTheme(CAL); clearTimeout(adminCalT); adminCalT = setTimeout(saveCal, 700); setSt('Guardando…'); }
+    if(k){ CAL[k] = k == 'open_hour' ? +e.target.value : e.target.value; if(k=='theme'){ applyTheme(CAL); $('#cuw').hidden = CAL.theme != 'personalizado'; } clearTimeout(adminCalT); adminCalT = setTimeout(saveCal, 700); setSt('Guardando…'); }
+    if(ek && CUR){ if(ek=='icon'||ek=='color') CUR[ek] = e.target.value; else CUR.content[ek] = e.target.value; queue(CUR); }
+  };
+  app.onchange = async e => {
+    const k = {ph:'photos', au:'audios', vi:'videos'}[e.target.id]; if(!k || !CUR) return;
+    const d = CUR; setSt('Subiendo…');
+    try{ for(const f of e.target.files){ (d.content[k] ||= []).push(await upload(f)); drawMedia(); } queue(d); }
+    catch(err){ toast('Error al subir: ' + err.message); setSt('Error'); }
+    e.target.value = '';
+  };
+  app.onclick = e => {
+    const b = e.target.closest('button,[data-d]'); if(!b) return;
+    if(b.dataset.d) edit(+b.dataset.d);
+    if(b.dataset.rm){ CUR.content[b.dataset.rm].splice(+b.dataset.i, 1); queue(CUR); drawMedia(); }
+    if(b.dataset.a == 'rec') toggleRec(b);
+    if(b.dataset.a == 'qr') showQR(b.dataset.v);
+    if(b.dataset.a == 'copy') navigator.clipboard.writeText(b.dataset.v).then(() => toast('Copiado'));
+  };
+}
+let adminCalT;
+const setSt = t => { const s = $('#st'); if(s) s.textContent = t; };
+function drawGrid(){ $('#grid').innerHTML = DOORS.map(d => `<button class="door ${d.opened?'open':''}" data-d="${d.day}" style="--c:${esc(d.color)}"><b>${d.day}</b><span>${esc(d.icon)}</span></button>`).join(''); }
+async function saveCal(){
+  const {day, ...p} = CAL;
+  const {data, error} = await sb.rpc('save_calendar', {tok: TOK, p: CAL});
+  if(error || !data) return setSt('No guardado: ' + (error?.message || 'revisa los datos'));
+  const r = await sb.rpc('get_admin', {tok: TOK}); if(r.data){ DOORS = r.data.doors; drawGrid(); }
+  setSt('Guardado ✓');
+}
+function queue(d){ pend = d; clearTimeout(T); setSt('Guardando…'); T = setTimeout(flush, 700); }
+async function flush(){
+  clearTimeout(T); if(!pend) return; const d = pend; pend = null;
+  const {data, error} = await sb.rpc('save_door', {tok: TOK, d: d.day, i: d.icon, col: d.color, cont: d.content});
+  setSt(error ? 'Error: ' + error.message : data ? 'Guardado ✓' : 'No guardado (la puerta ya se abrió)'); drawGrid();
+}
+addEventListener('visibilitychange', () => { if(document.hidden) flush(); });
+function edit(day){
+  flush(); CUR = DOORS.find(d => d.day == day); CUR.content ||= {}; const c = CUR.content;
+  $('#ed').innerHTML = CUR.opened ? `<p>La puerta ${day} ya está desbloqueada y no se puede editar.</p>` :
+  `<h3>Puerta ${day} · se abre el ${fmt(CUR.unlock_at, CAL.tz)}</h3>
+  <label>Icono (un emoji)<input data-e="icon" value="${esc(CUR.icon)}" maxlength="4"></label>
+  <label>Color<input type="color" data-e="color" value="${/^#[0-9a-f]{6}$/i.test(CUR.color)?CUR.color:'#b3262d'}"></label>
+  <label>Carta o mensaje<textarea data-e="letter" rows="7">${esc(c.letter||'')}</textarea></label>
+  <label>Fotos<input type="file" id="ph" accept="image/*" multiple></label>
+  <label>Audios (archivo)<input type="file" id="au" accept="audio/*" multiple></label>
+  <button type="button" class="btn s" data-a="rec">🎙 Grabar mi voz</button>
+  <label>Vídeos (máx. 50 MB cada uno)<input type="file" id="vi" accept="video/*" multiple></label>
+  <div class="pl" id="ml"></div>
+  <label>Música: enlaces de Spotify o YouTube (uno por línea)<textarea data-e="lk" rows="3">${esc(c.lk||'')}</textarea></label>
+  <label>Vale: título<input data-e="vt" value="${esc(c.vt||'')}" placeholder="Vale por una cena" maxlength="120"></label>
+  <label>Vale: detalle<textarea data-e="vd" rows="2">${esc(c.vd||'')}</textarea></label>
+  <label>Reto, adivinanza o pregunta<textarea data-e="rq" rows="2">${esc(c.rq||'')}</textarea></label>
+  <label>Pista (opcional)<input data-e="rh" value="${esc(c.rh||'')}"></label>
+  <label>Respuesta (opcional)<input data-e="ra" value="${esc(c.ra||'')}"></label>`;
+  drawMedia(); $('#ed').scrollIntoView({behavior:'smooth'});
+}
+function drawMedia(){
+  const p = $('#ml'); if(!p || !CUR) return; const c = CUR.content;
+  p.innerHTML = [['photos','img'],['audios','au'],['videos','vi']].map(([k,t]) => (c[k]||[]).map((u,i) =>
+    `<div>${t=='img' ? `<img src="${esc(u)}">` : `<span class="chip">${t=='au'?'🎧':'🎬'} ${i+1}</span>`}<button data-rm="${k}" data-i="${i}">×</button></div>`).join('')).join('');
+}
+let REC;
+async function toggleRec(b){
+  if(REC){ REC.stop(); return; }
+  const d = CUR;
+  try{
+    const st = await navigator.mediaDevices.getUserMedia({audio:true}), ch = [];
+    const mt = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+    REC = new MediaRecorder(st, {mimeType: mt});
+    REC.ondataavailable = e => ch.push(e.data); b.textContent = '⏹ Parar y guardar';
+    REC.onstop = async () => {
+      st.getTracks().forEach(t => t.stop()); REC = null; b.textContent = '🎙 Grabar mi voz'; setSt('Subiendo audio…');
+      try{ (d.content.audios ||= []).push(await upload(new File(ch, 'voz', {type: mt}))); queue(d); if(CUR == d) drawMedia(); }
+      catch(err){ toast('Error: ' + err.message); }
+    };
+    REC.start();
+  }catch(err){ toast('No se pudo usar el micrófono: permite el acceso en Chrome.'); REC = null; }
+}
+async function shrink(file){
+  const im = await createImageBitmap(file), s = Math.min(1, 1280 / Math.max(im.width, im.height));
+  const c = document.createElement('canvas'); c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
+  c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+  return new Promise(r => c.toBlob(r, 'image/jpeg', .8));
+}
+async function upload(file){
+  const img = file.type.startsWith('image/'), mt = file.type.split(';')[0];
+  if(!mt) throw new Error('Formato no reconocido');
+  if(!img && file.size > 50*1024*1024) throw new Error('Máximo 50 MB por archivo');
+  const b = img ? await shrink(file) : file;
+  const ext = img ? 'jpg' : mt.split('/')[1].replace('quicktime','mov').replace('mpeg','mp3').replace('x-m4a','m4a');
+  const p = crypto.randomUUID() + '.' + ext;
+  const {error} = await sb.storage.from('media').upload(p, b, {contentType: img ? 'image/jpeg' : mt});
+  if(error) throw error; return sb.storage.from('media').getPublicUrl(p).data.publicUrl;
+}
+function embed(u){
+  let x; try{ x = new URL(u.trim()); }catch(e){ return ''; }
+  if(!/^https?:$/.test(x.protocol)) return '';
+  const h = x.hostname.replace(/^www\.|^m\./,'');
+  if(h == 'open.spotify.com'){ const m = x.pathname.match(/\/(track|album|playlist|episode|show)\/(\w+)/); if(m) return `<iframe src="https://open.spotify.com/embed/${m[1]}/${m[2]}" height="152" loading="lazy" allow="encrypted-media"></iframe>`; }
+  let id = ''; if(h == 'youtu.be') id = x.pathname.slice(1); else if(h.endsWith('youtube.com')) id = x.searchParams.get('v') || (x.pathname.match(/\/(?:shorts|embed)\/([\w-]+)/)||[])[1] || '';
+  if(/^[\w-]{11}$/.test(id)) return `<iframe src="https://www.youtube-nocookie.com/embed/${id}" height="220" allowfullscreen loading="lazy"></iframe>`;
+  return `<a class="btn s" target="_blank" rel="noopener" href="${esc(x.href)}">Abrir enlace</a>`;
+}
+
+/* ---------- DESTINATARIO ---------- */
+async function view(slug){
+  const load = async () => (await sb.rpc('get_public', {sl: slug})).data;
+  let data = await load();
+  if(!data){ app.innerHTML = '<div class="card"><h2>Calendario no encontrado</h2></div>'; return; }
+  const {cal} = data; applyTheme(cal);
+  const now = Date.now();
+  app.innerHTML = `<h1>${esc(cal.title)}</h1><p class="sub">${cal.to_name ? 'Para ' + esc(cal.to_name) : ''}${cal.from_name ? ' · de ' + esc(cal.from_name) : ''}</p>
+  ${cal.dedication ? `<div class="card sub">${esc(cal.dedication)}</div>` : ''}
+  <div class="grid">${data.doors.map(d => { const op = d.content !== null; return `<button class="door ${op?'open':'lock'}" data-d="${d.day}" style="--c:${esc(d.color)}"><b>${d.day}</b><span>${esc(d.icon)}</span></button>`; }).join('')}</div>${data.doors[23].content !== null ? `<p style="text-align:center"><a class="btn" href="#/r/${slug}">Guardar el recuerdo en PDF</a></p>` : ''}`;
+  app.onclick = async e => {
+    const b = e.target.closest('[data-d]'); if(!b) return;
+    data = await load(); const d = data.doors.find(x => x.day == b.dataset.d);
+    if(d.content === null) return toast('Esta puerta se abre el ' + fmt(d.unlock_at, cal.tz));
+    openDoor(d, data.doors, cal);
+  };
+}
+function openDoor(d, all = [], cal = {}){
+  const c = d.content || {}, m = document.createElement('div'); m.className = 'modal';
+  m.innerHTML = `<div class="box${d.day==24?' final':''}"><button class="x">✕</button><h2>${d.day==24 ? '🎆 Gran final' : 'Día ' + d.day} ${esc(d.icon)}</h2>
+  ${c.letter ? `<div class="letter">${esc(c.letter)}</div>` : ''}
+  ${(c.photos||[]).length ? `<div class="ph">${c.photos.map(u => `<img loading="lazy" src="${esc(u)}">`).join('')}</div>` : ''}
+  ${(c.audios||[]).map(u => `<audio controls preload="none" src="${esc(u)}"></audio>`).join('')}
+  ${(c.videos||[]).map(u => `<video controls playsinline preload="metadata" src="${esc(u)}"></video>`).join('')}
+  ${(c.lk||'').split('\n').filter(l => l.trim()).map(embed).join('')}
+  ${c.vt ? `<div class="vale"><h3>${esc(c.vt)}</h3><p>${esc(c.vd||'')}</p></div>` : ''}
+  ${c.rq ? `<div class="vale"><p>${esc(c.rq)}</p>${c.ra ? `<input id="ans" placeholder="Tu respuesta"><button class="btn" data-r="chk">Comprobar</button>` : ''}${c.rh ? `<button class="btn s" data-r="hint">Ver pista</button><p id="hint" hidden>${esc(c.rh)}</p>` : ''}<p id="res"></p></div>` : ''}
+  ${!c.letter && !c.vt && !c.rq && !c.lk && !['photos','audios','videos'].some(k => (c[k]||[]).length) ? '<p class="sub">Hoy la sorpresa eres tú 💛</p>' : ''}${d.day==24 ? finalExtra(d, all, cal) : ''}</div>`;
+  m.onclick = e => {
+    if(e.target == m || e.target.className == 'x') return m.remove();
+    const r = e.target.dataset.r;
+    if(r == 'hint') m.querySelector('#hint').hidden = false;
+    if(r == 'chk'){
+      const n = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+      m.querySelector('#res').textContent = n(m.querySelector('#ans').value) == n(c.ra) ? '🎉 ¡Correcto!' : 'Casi… prueba otra vez';
+    }
+  };
+  document.body.append(m);
+  if(d.day == 24){ confetti(); hearts(); }
+}
+route();
+</script>
+</body>
+</html>
